@@ -7,6 +7,12 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import pandas as pd
 
+"""
+Similarity Calculation:
+Will be using Cosine Similarity
+Calculate the similarity between each pair of items in the dataset using the chosen metric.
+"""
+
 def SimilarityScores(features,target,numRows): 
     target = np.array(target)
     features = np.array(features)
