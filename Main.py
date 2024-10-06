@@ -6,8 +6,8 @@ Purpose: Main file for running the Recommendation System
 
 import numpy as np
 import pandas as pd
-from DataImport import DataImport
-from FeatureEncoding import FeatureEncoding
+from ImportData.DataImport import DataImport
+from PredictionCreation.FeatureEncoding import FeatureEncoding
 from Display import UserInput, PrintSimilarAnime
 
 #Load in data
