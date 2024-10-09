@@ -2,8 +2,6 @@ Repository to hold Isaiah Hanna's AnimeRecommendation!
 
 Goal is to create a site that can recommend people anime that they will enjoy based on what they've watched before.
 
-Methods: We will be using content-based filtering.
-
 
 Columns List:
 1. uid - ID of anime on MyAnimeList
@@ -17,5 +15,3 @@ Columns List:
 9. ranked - ranking on MyAnimeList
 10. score - score out of 10 (like a review)
 
-
-TODO: At some point use the crawler to get up-to-date info. Just remember that if this program ends up using a new animes.csv it will need to delete duplicates
