@@ -54,24 +54,18 @@ def displayAnime(originalDf,features,userAnime,function):
         topAnime = SimilarityScores(features,userAnime,5)
     elif function.lower() == 'predict':
         target = userAnime 
-        topAnime = prediction(originalDf,features,target,5)
+        topAnime = prediction(originalDf,target,5)[0]
     lengths = []
     for i in range(len(topAnime)):
-        if function.lower() == 'similar':
-            idx = list(topAnime)[i] 
-        else:
-            idx = originalDf[originalDf['uid'] == topAnime.iloc[i,0]].index.tolist()[0]
+        idx = topAnime[i]
         titles.append(originalDf.iloc[idx]["titles"].strip('[]').split(',')[0])
         lengths.append(len(titles[i]))
     MaxStrLen = max(lengths) + 5
     print("\n{:<{}} {:<15} {:<15} {:<15}\n".format("Name",MaxStrLen,"Genre","Began Airing","Number of Episodes"))
 
     for i in range(len(topAnime)):
-        if function.lower() == 'similar':
-            idx = list(topAnime)[i] 
-        else:
-            idx = originalDf[originalDf['uid'] == topAnime.iloc[i,0]].index.tolist()[0]
-        print("{:<{}} {:<15} {:<15} {:<15}".format(titles[i].title(),MaxStrLen,originalDf.iloc[idx]['genre'].split(",")[0][2:-1],originalDf.iloc[idx]['aired'].split("to")[0],originalDf.iloc[idx]['episodes']))
+        idx = topAnime[i]
+        print("{:<{}} {:<15} {:<15} {:<15}".format(titles[i].title(),MaxStrLen,originalDf.iloc[idx]['genre'].split(",")[0][:],originalDf.iloc[idx]['aired'].split("-")[0],originalDf.iloc[idx]['episodes']))
     print("\n")
     """
     TODO

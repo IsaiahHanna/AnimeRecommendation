@@ -27,6 +27,7 @@ def model(animeDf,rewriteRecs: bool = False):
             print("Recommendation failed, exiting program.")
             exit()
     trainingData = pd.read_csv("recommendationsAltered.csv")
+    animeDf = pd.read_csv('animes.csv')
     #Do another check to make sure that no movies/music/OVA are in dataset
     
     for col in animeDf.columns.tolist():
@@ -36,6 +37,7 @@ def model(animeDf,rewriteRecs: bool = False):
     features = FeatureEncoding(animeDf)
     trainingData = pd.merge(trainingData,features,on='uid')
     x = trainingData.drop(['recId','recommendations'],axis = 1)
+    x.sort_values(by = 'uid',inplace= True) # Sorted so that it is easier to debug and see what uid == 1 looks like scaled
     y = trainingData['recId']
     xTrain,xTest,yTrain,yTest = train_test_split(x,y,test_size = 0.2)
 
@@ -44,7 +46,7 @@ def model(animeDf,rewriteRecs: bool = False):
     scaler = StandardScaler()
     xTrain = scaler.fit_transform(xTrain)
     xTest = scaler.transform(xTest)
-    x = scaler.transform(x)
+    xScaled = scaler.transform(x)
 
     #Fit model
     knn = KNeighborsClassifier(n_neighbors = 3)
@@ -53,14 +55,14 @@ def model(animeDf,rewriteRecs: bool = False):
     accuracy = accuracy_score(yTest, yPred)
 
     #Uncomment line below to check accuracy
-    print("Training Accuracy:", accuracy) 
+    #print("Training Accuracy:", accuracy) 
 
     #Cross validate and try various values of k
     kValues = [i for i in range (1,31)]
     scores = []
 
-    scaler = StandardScaler()
-    x2 = scaler.fit_transform(x)
+    scaler2 = StandardScaler()
+    x2 = scaler2.fit_transform(x)
 
     with warnings.catch_warnings(action = 'ignore'):
         for k in kValues:
@@ -69,18 +71,29 @@ def model(animeDf,rewriteRecs: bool = False):
             scores.append(np.mean(score))
 
     knn = KNeighborsClassifier(n_neighbors = kValues[np.argmax(scores)])
-    knn.fit(x,y)
+    knn.fit(xScaled,y)
 
-    yPredCV = knn.predict(xTest)
-    accuracy = accuracy_score(yTest, yPredCV)
+    '''
+    Note that x has columns: ['uid', 'members', 'episodes', 'Action', 'Adventure', 'Avant Garde',
+       'Award Winning', 'Boys Love', 'Comedy', 'Drama', 'Ecchi', 'Fantasy',
+       'Girls Love', 'Gourmet', 'Horror', 'Mystery', 'Romance', 'Sci-Fi',
+       'Slice of Life', 'Sports', 'Supernatural', 'Suspense']
+    Reminder: y is just the recordID of the show that is recommended 
+    '''
+    yPred = knn.predict(xTest)
+    accuracy = accuracy_score(yTest, yPred)
+
+    if accuracy < 0.9:
+        print("Accuracy sub-ninety percent. Exiting...")
+        exit()
 
     #Uncomment line below to check accuracy
-    print("Accuracy:", accuracy)
+    #print("Accuracy:", accuracy)
 
 
     return knn,scaler,features
 
-def prediction(df,features,userAnime,numRows):
+def prediction(df,userAnime,numRows):
     knn,scaler,features = model(df)
     if not knn:
         print("KNN model failed to be instantiated. Exiting...")
@@ -89,12 +102,11 @@ def prediction(df,features,userAnime,numRows):
         print("User's input failed to be read. Exiting...")
         exit()
     
-    
     #Find nearest neighbors of user's input
     userAnime = userAnime[features.columns.tolist()]
-    userScaled = scaler.fit_transform(userAnime)
+    userScaled = scaler.transform(userAnime)
     neighborsDist,neighborsInd = knn.kneighbors(userScaled,n_neighbors = 5)  #Returns the distance and indices of the nearest neighbors (default is based on the k used in model's constructor)
     
-    neighbors = df.iloc[list(neighborsInd)[0]]
-    return neighbors
+    recs = df.iloc[list(neighborsInd)[0]]
+    return neighborsInd
     
