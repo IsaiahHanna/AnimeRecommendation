@@ -6,9 +6,12 @@ Purpose: Main file for running the Recommendation System
 
 import numpy as np
 import pandas as pd
+import time
 from ImportData.DataImport import DataImport
 from PredictionCreation.FeatureEncoding import FeatureEncoding
-from Display import UserInput, PrintSimilarAnime
+from Display import UserInput, displayAnime
+from PredictionCreation.ModelBuilding import prediction
+from SimilarityScores import SimilarityScores
 
 #Load in data
 animeCopy = DataImport()
@@ -19,11 +22,15 @@ features = FeatureEncoding(animeCopy)
 
 userAnime = UserInput(animeCopy,features)
 
-PrintSimilarAnime(animeCopy,features,userAnime)
+print("Anime similar to your input are: ")
+displayAnime(animeCopy,features,userAnime,'similar')
 
+#time.sleep(5)
 
+print("Recommended anime for you to watch are: ")
+displayAnime(animeCopy,features,userAnime,'predict')
 
-#Recommendation Generation
+#Recommendation Generatio
 #Based on the user input and the calculated similarities, generate a list of recommended anime titles.
 #Rank the recommended titles based on their similarity to the user input and possibly other factors like popularity or member counts.
 

@@ -14,7 +14,7 @@ Calculate the similarity between each pair of items in the dataset using the cho
 """
 
 #Input: features dataframe, UserAnime series (1 row dataframe) and number of Similar anime to produce  
-#Output: A dataframe with 
+#Output: A dataframe
 def SimilarityScores(features,target,numRows): 
     target = np.array(target)
     features = np.array(features)

@@ -2,3 +2,11 @@
 
  Beginning the gathering of Recommendation data.
 Error:Population must be a sequence.  For dicts or sets, use sorted(d).. Attempt to get random IDs failed.
+
+ Beginning the gathering of Recommendation data.
+Error Message: 'titles'. ID Number: 40550.Error Message: 'titles'. ID Number: 159.Error Message: 'titles'. ID Number: 44416.Error Message: 'titles'. ID Number: 48899.Error Message: 'titles'. ID Number: 46450.Error Message: 'titles'. ID Number: 29429.Error Message: 'titles'. ID Number: 961.Error Message: 'titles'. ID Number: 36000.Error Message: 'titles'. ID Number: 45736.Error Message: 'titles'. ID Number: 4709.Error Message: 'titles'. ID Number: 41454.Error Message: 'titles'. ID Number: 11633.
+
+ Beginning the gathering of Recommendation data.
+Error Message: list index out of range. ID Number: 36483.Error Message: list index out of range. ID Number: 34008.Error Message: list index out of range. ID Number: 57950.Error Message: list index out of range. ID Number: 54444.Error Message: list index out of range. ID Number: 10855.Error Message: list index out of range. ID Number: 30152.Error Message: list index out of range. ID Number: 58055.Error Message: list index out of range. ID Number: 48409.
+
+ Beginning the gathering of Recommendation data.

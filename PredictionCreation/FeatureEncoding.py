@@ -28,9 +28,9 @@ def FeatureEncoding(animeCopy):
     genres_encoded = mlb.fit_transform(genres_lists)
     genres_df = pd.DataFrame(genres_encoded, columns=mlb.classes_)
     genres_df = genres_df.set_index(features.index)
-    genre_weight = .2
-    weighted_genre_df = genres_df * genre_weight
-    features = pd.concat([features,weighted_genre_df],axis = 1)
+    #genre_weight = .2
+    #weighted_genre_df = genres_df * genre_weight
+    features = pd.concat([features,genres_df],axis = 1)
     features = features.drop(['genre'],axis = 1)
 
     return features

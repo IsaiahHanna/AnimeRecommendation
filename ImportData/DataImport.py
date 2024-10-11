@@ -8,33 +8,55 @@ import sys
 import pandas as pd
 import requests
 import json
-from api_Url import URL
+import re
 directory_path = os.path.abspath("C:\\Users\\isaia\\AnimeRecommendation")
 sys.path.append(directory_path)
 from ExceptionsList import DataImportException
+from ImportData.api_Url import URL
 import time
 import random
 
 os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\ImportData')
 
 
-def DataImport():
+def DataImport(check:bool = False):
+    os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\ImportData')
     # Load the dataset
-    for i in range(4):
-        loadAnime = CheckMissingAnime()
-        if loadAnime == True:
-            break
-        elif i == 3:
-            exit()
+    if check:
+        for i in range(4):
+            loadAnime = CheckMissingAnime()
+            if loadAnime == True:
+                break
+            elif i == 3:
+                exit()
     with open('animes.csv',encoding = 'latin-1') as f:
         animeData = pd.read_csv(f)
+    global animeCopy
     animeCopy = animeData.copy()
-    animeCopy['title'] = animeCopy['title'].str.lower().str.strip()
+    animeCopy['titles'] = animeCopy['titles'].apply(lambda x: x.lower().strip())
     animeCopy = animeCopy[~((animeCopy['episodes'] == 'na') | (animeCopy['episodes'] == 1))]
-    animeCopy  = animeCopy.dropna(subset=['episodes'])
-    return animeCopy
+
+    def estimateEpisodes(aired,idx):
+        if 'Present' in aired:
+            aired = (abs(int(aired[0:4])-2024)*40)
+            return aired
+        else: 
+            return animeCurrent.iloc[idx,4]
+      
+    animeCurrent = animeCopy.copy()
+    animeCurrent['aired'] = animeCopy['aired'].apply(lambda x: 'Current' if 'Present' in x else x)
+    animeFinished = animeCurrent[animeCurrent['aired'] != 'Current']
+    animeCurrent = animeCopy[~animeCopy['uid'].isin(animeFinished['uid'])]
+    animeFinished  = animeFinished.dropna(subset=['episodes'])
+    for idx in range(len(animeCurrent)):
+        animeCurrent.iloc[idx,4] = int(estimateEpisodes(animeCurrent.iloc[idx,3],idx))
+    animeConcat = pd.concat([animeCurrent,animeFinished]).sort_values('uid')
+    #animeCopy = animeConcat.dropna(subset='episodes')
+    #print(animeConcat['episodes'].isna().values.any())
+    return animeConcat
 
 def DataCompleteCollection():
+    os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\ImportData')
     animeIDs = []
     animeDf = {'uid':0,'titles':[],'genre':[],'aired':'','episodes': 0,'members':0,'popularity':0,'ranked':0,'score':0,'url':''}
     animeDf = pd.DataFrame(data = animeDf)
@@ -98,6 +120,7 @@ def DataCompleteCollection():
     animeDf.to_csv('animes.csv',sep=',',encoding='utf-8',index = 'False')
 
 def CheckMissingAnime() -> bool:
+    os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\DataImport')
     animeIDs = pd.DataFrame()
     #movieIDs = pd.read_csv('animeMovies.csv')
     newMoviesIDs = []
@@ -189,6 +212,7 @@ def CheckMissingAnime() -> bool:
         return False
 
 def RecommendationData(percent:int):
+    os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\ImportData')
     outfile = open("ErrorFile.txt","a")
     outfile.write("\n\n Beginning the gathering of Recommendation data.\n")
     trainingData = pd.DataFrame({'uid':0,'recommendations':[]})
@@ -224,17 +248,32 @@ def RecommendationData(percent:int):
             data = response.json()['data']
 
             nextAnime['uid'] = id
-            for entry in data:
-                nextAnime['recommendations'].append(entry['entry']['title'])
-            
+            if len(data) != 0:
+                for entry in data:
+                    nextAnime['recommendations'].append(entry['entry']['title'])
+            else:
+                continue
             trainingData.loc[idx] = nextAnime
             idx += 1
-            print(nextAnime['titles'][0] + " added to training data :)")
+            print(f"On index {idx}: {nextAnime['uid']} added to training data with recommendation {nextAnime['recommendations'][0]}")
             time.sleep(1)
         
         except Exception as e:
-            print(e)
+            print(f"Error on index: {idx}.  Error Message: {e}.")
             outfile.write(f"Error Message: {e}. ID Number: {id}.")
 
     trainingData.to_csv('recommendations.csv',header=False,index=False,mode = 'a') #TODO: Move away from csv and lean into just returning the dataframe itself
     return True #animeDf[animeDf['uid'].isin(randomIDs)] #Return true for function successful and the dataframe containing the random anime and their recommendations
+
+
+def mergeRecommendationNames():
+    df = pd.read_csv(os.getcwd()+"\\\ImportData\\recommendationsOriginal.csv")
+    animedf = pd.read_csv(os.getcwd()+"\\\ImportData\\animes.csv")
+    df['recommendations'] = df['recommendations'].apply(lambda x: x.strip('[]').split(',')[0])
+    animedf['titles'] = animedf['titles'].apply(lambda x: x.strip('[]').split(',')[0])
+    animes = {'recId':animedf['uid'],'recommendations':animedf['titles']}
+    animesdf = pd.DataFrame(animes)
+    mergedDf = pd.merge(animesdf,df,on = 'recommendations')
+    print(mergedDf.tail(20))
+    mergedDf.to_csv('recommendationsAltered.csv',index=False)
+    return
