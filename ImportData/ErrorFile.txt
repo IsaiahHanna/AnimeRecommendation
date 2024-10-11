@@ -10,3 +10,6 @@ Error Message: 'titles'. ID Number: 40550.Error Message: 'titles'. ID Number: 15
 Error Message: list index out of range. ID Number: 36483.Error Message: list index out of range. ID Number: 34008.Error Message: list index out of range. ID Number: 57950.Error Message: list index out of range. ID Number: 54444.Error Message: list index out of range. ID Number: 10855.Error Message: list index out of range. ID Number: 30152.Error Message: list index out of range. ID Number: 58055.Error Message: list index out of range. ID Number: 48409.
 
  Beginning the gathering of Recommendation data.
+
+
+ Beginning the gathering of Recommendation data.

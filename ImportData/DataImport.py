@@ -9,12 +9,15 @@ import pandas as pd
 import requests
 import json
 import re
+import time
+import random
+from datetime import date
 directory_path = os.path.abspath("C:\\Users\\isaia\\AnimeRecommendation")
 sys.path.append(directory_path)
 from ExceptionsList import DataImportException
 from ImportData.api_Url import URL
-import time
-import random
+
+
 
 os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\ImportData')
 
@@ -211,7 +214,7 @@ def CheckMissingAnime() -> bool:
     else:
         return False
 
-def RecommendationData(percent:int):
+def RecommendationData(percent:float = 1):
     os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\ImportData')
     outfile = open("ErrorFile.txt","a")
     outfile.write("\n\n Beginning the gathering of Recommendation data.\n")
@@ -228,18 +231,20 @@ def RecommendationData(percent:int):
         return False,animeDf
     
     #Generate random entries to be used as training data
-    try:
-        numAnime = int(animeDf.shape[0] * percent)
-        #random.seed()
-        randomIDs = random.sample(sorted(animeDf['uid']),numAnime)
-        if len(randomIDs) == 0:
-            raise DataImportException(error_code=2002,message="Unable to generate list containing random uids")
-    except Exception as e:
-        outfile.write(f"Error:{e}. Attempt to get random IDs failed.")
-
+    if percent != 1:
+        try:
+            numAnime = int(animeDf.shape[0] * percent)
+            #random.seed()
+            randomIDs = random.sample(sorted(animeDf['uid']),numAnime)
+            if len(randomIDs) == 0:
+                raise DataImportException(error_code=2002,message="Unable to generate list containing random uids")
+        except Exception as e:
+            outfile.write(f"Error:{e}. Attempt to get random IDs failed.")
+    else:
+        randomIDs = animeDf['uid']
     idx = 0
     for id in randomIDs:
-        nextAnime = {'uid': id,'recommendations':[]}
+        nextAnime = {'uid': id,'recommendations':[],'recIDs':[]}
 
         try:
             response = requests.get(f"https://api.jikan.moe/v4/anime/{id}/recommendations")
@@ -251,6 +256,7 @@ def RecommendationData(percent:int):
             if len(data) != 0:
                 for entry in data:
                     nextAnime['recommendations'].append(entry['entry']['title'])
+                    nextAnime['recIDs'].append(entry['entry']['mal_id'])
             else:
                 continue
             trainingData.loc[idx] = nextAnime
@@ -262,7 +268,7 @@ def RecommendationData(percent:int):
             print(f"Error on index: {idx}.  Error Message: {e}.")
             outfile.write(f"Error Message: {e}. ID Number: {id}.")
 
-    trainingData.to_csv('recommendations.csv',header=False,index=False,mode = 'a') #TODO: Move away from csv and lean into just returning the dataframe itself
+    trainingData.to_csv(f'recommendations_{date.today()}.csv',header=False,index=False,mode = 'a') #TODO: Move away from csv and lean into just returning the dataframe itself
     return True #animeDf[animeDf['uid'].isin(randomIDs)] #Return true for function successful and the dataframe containing the random anime and their recommendations
 
 
@@ -277,3 +283,5 @@ def mergeRecommendationNames():
     print(mergedDf.tail(20))
     mergedDf.to_csv('recommendationsAltered.csv',index=False)
     return
+
+RecommendationData()
