@@ -49,7 +49,7 @@ def model(animeDf,rewriteRecs: bool = False):
     xScaled = scaler.transform(x)
 
     #Fit model
-    knn = KNeighborsClassifier(n_neighbors = 3)
+    knn = KNeighborsClassifier(n_neighbors = 3,metric='cosine')
     knn.fit(xTrain,yTrain)
     yPred = knn.predict(xTest)
     accuracy = accuracy_score(yTest, yPred)
@@ -66,11 +66,11 @@ def model(animeDf,rewriteRecs: bool = False):
 
     with warnings.catch_warnings(action = 'ignore'):
         for k in kValues:
-            knn = KNeighborsClassifier(n_neighbors=k)
+            knn = KNeighborsClassifier(n_neighbors=k,metric = 'cosine')
             score = cross_val_score(knn, x2, y,cv = 2)
             scores.append(np.mean(score))
 
-    knn = KNeighborsClassifier(n_neighbors = kValues[np.argmax(scores)])
+    knn = KNeighborsClassifier(n_neighbors = kValues[np.argmax(scores)],metric='cosine')
     knn.fit(xScaled,y)
 
     '''
@@ -105,8 +105,7 @@ def prediction(df,userAnime,numRows):
     #Find nearest neighbors of user's input
     userAnime = userAnime[features.columns.tolist()]
     userScaled = scaler.transform(userAnime)
-    neighborsDist,neighborsInd = knn.kneighbors(userScaled,n_neighbors = 5)  #Returns the distance and indices of the nearest neighbors (default is based on the k used in model's constructor)
-    
-    recs = df.iloc[list(neighborsInd)[0]]
-    return neighborsInd
+    neighborsDist,neighborsInd = knn.kneighbors(userScaled,n_neighbors = 6)  #Returns the distance and indices of the nearest neighbors (default is based on the k used in model's constructor)
+    recs = np.array(df.iloc[neighborsInd.tolist()[0][1:],0]).tolist()
+    return recs
     

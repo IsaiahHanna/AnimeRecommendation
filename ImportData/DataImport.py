@@ -34,7 +34,6 @@ def DataImport(check:bool = False):
                 exit()
     with open('animes.csv',encoding = 'latin-1') as f:
         animeData = pd.read_csv(f)
-    global animeCopy
     animeCopy = animeData.copy()
     animeCopy['titles'] = animeCopy['titles'].apply(lambda x: x.lower().strip())
     animeCopy = animeCopy[~((animeCopy['episodes'] == 'na') | (animeCopy['episodes'] == 1))]
@@ -283,5 +282,3 @@ def mergeRecommendationNames():
     print(mergedDf.tail(20))
     mergedDf.to_csv('recommendationsAltered.csv',index=False)
     return
-
-RecommendationData()
