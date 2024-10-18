@@ -192,13 +192,13 @@ def CheckMissingAnime() -> bool:
     animeIDs = animeIDs[~ (animeIDs['uid'].isin(animeDf['uid']))]
     animeIDs = animeIDs[~ (animeIDs['uid'].isin(knownMovies['id']))]
 
-    newAnimeDf = {'uid':0,'titles':[],'genre':[],'aired':'','episodes': 0,'members':0,'popularity':0,'ranked':0,'score':0,'url':''}
+    newAnimeDf = {'uid':0,'titles':[],'genre':[],'themes':[],'demographics':[],'rating':'','aired':'','episodes': 0,'members':0,'popularity':0,'ranked':0,'score':0,'url':'','synopsis':'','studios':[],'licensors':[]}
     newAnimeDf = pd.DataFrame(newAnimeDf)
 
     idx = 0
     for id in animeIDs['uid']:
 
-        nextAnime = {'uid':0,'titles':[],'genre':[],'aired':'','episodes': 0,'members':0,'popularity':0,'ranked':0,'score':0,'url':''}
+        nextAnime = {'uid':0,'titles':[],'genre':[],'themes':[],'demographics':[],'rating':'','aired':'','episodes': 0,'members':0,'popularity':0,'ranked':0,'score':0,'url':'','synopsis':'','studios':[],'licensors':[]}
         try:
             response = requests.get(URL + "/anime/" + str(id))
             if response.status_code == 400:
@@ -218,11 +218,21 @@ def CheckMissingAnime() -> bool:
             nextAnime['genre'] = []
             for genre in data['genres']:
                 nextAnime['genre'].append(genre['name'])
+            if len(data['themes']) != 0:
+                for theme in data['themes']:
+                    nextAnime['themes'].append(theme['name'])
+            else:
+                nextAnime['themes'] = np.nan
+            if len(data['demographics']) != 0:
+                for demo in data['demographics']:
+                    nextAnime['demographics'].append(demo['name'])
+            else:
+                nextAnime['demographics'] = np.nan
+            if data['rating'] != '':
+                nextAnime['rating'] = data['rating']    
             if "?" in data['aired']['string']:
                 nextAnime['aired'] = f"{data['aired']['from'][:10]} - Present"  
             elif data['aired']['to'] == None:
-                newMoviesIDs.append(id)
-                print(f"ID Number: {id}, is a movie and has been sent to moviesID dataframe/series")
                 continue
             else:
                 nextAnime['aired'] = f"{data['aired']['from'][:10]} - {data['aired']['to'][:10]}"  
@@ -232,6 +242,20 @@ def CheckMissingAnime() -> bool:
             nextAnime['ranked'] = data['rank']
             nextAnime['score'] = data['score']
             nextAnime['url'] = data['url']
+            if data['synopsis'] != '':
+                nextAnime['synopsis'] = data['synopsis']
+            else: 
+                nextAnime['synopsis'] = np.nan
+            if len(data['studios']) != 0:
+                for studio in data['studios']:
+                    nextAnime['studios'].append(studio['name'])
+            else:
+                nextAnime['studios'] = np.nan
+            if len(data['licensors']) != 0:
+                for licensor in data['licensors']:
+                    nextAnime['licensors'].append(licensor['name'])
+            else:
+                nextAnime['licensors'] = np.nan
 
             newAnimeDf.loc[idx] = nextAnime
             idx += 1
