@@ -64,7 +64,7 @@ def UserInput(originalDf,features,show_name: str = 'naruto' ,console: bool = Tru
             print("You have reached the maximum failed attempts. Please run program again.")
             exit()
     userAnime = features.loc[features['uid'] == userAnime['uid'].iloc[0]]
-    return userAnime
+    return userAnime #Note that userAnime is a one row pd.Dataframe
 
 
 """

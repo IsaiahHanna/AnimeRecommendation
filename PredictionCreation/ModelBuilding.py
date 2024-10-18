@@ -19,10 +19,10 @@ from ImportData.DataImport import RecommendationData
 from PredictionCreation.FeatureEncoding import FeatureEncoding
 os.chdir("C:\\Users\\isaia\\AnimeRecommendation")
 
-def model(animeDf,rewriteRecs: bool = False):
+def model(animeDf,features,rewriteRecs: bool = False):
     os.chdir("C:\\Users\\isaia\\AnimeRecommendation\\ImportData")
     if rewriteRecs:
-        recExist = RecommendationData(0.8)
+        recExist = RecommendationData()
         if not recExist:
             print("Recommendation failed, exiting program.")
             exit()
@@ -34,7 +34,7 @@ def model(animeDf,rewriteRecs: bool = False):
         if animeDf[col].isna().values.any() == True:
             animeDf = animeDf.dropna(subset = [col])
     
-    features = FeatureEncoding(animeDf)
+    #features = FeatureEncoding(animeDf)
     trainingData = pd.merge(trainingData,features,on='uid')
     x = trainingData.drop(['recId','recommendations'],axis = 1)
     x.sort_values(by = 'uid',inplace= True) # Sorted so that it is easier to debug and see what uid == 1 looks like scaled
@@ -91,7 +91,7 @@ def model(animeDf,rewriteRecs: bool = False):
     #print("Accuracy:", accuracy)
 
 
-    return knn,scaler,features
+    return knn,scaler
 
 def prediction(df,userAnime,numRows):
     knn,scaler,features = model(df)

@@ -10,8 +10,71 @@ import time
 from ImportData.DataImport import DataImport
 from PredictionCreation.FeatureEncoding import FeatureEncoding
 from Display import UserInput, displayAnime
-from PredictionCreation.ModelBuilding import prediction
+from PredictionCreation.ModelBuilding import prediction,model
 from SimilarityScores import SimilarityScores
+
+
+class Recommendation:
+    # Initialize recommendation object with the animes and features dataframes
+    def __init__(self,console:bool = False):
+        self.console = console
+        self.animes = DataImport()
+        self.features = FeatureEncoding()
+        self.knn,self.scaler = model(self.anime,self.features)
+        
+    # Method to take in user input and save it to object
+    # Return: True if successful, False otherwise
+    def input(self) -> bool:
+        if  self.animes.empty or  self.features.empty:
+            return False
+        
+        self.userAnime = UserInput(self.animes,self.features)
+        return True
+        
+
+    # Method to that produces similar anime (uid's) to the user's input
+    # Uses cosine_similarity()
+    # Input: The number of anime uid's to save to similarIDs
+    # Return: True if successful, False otherwise
+    def similar(self,numRows:int = 5) -> bool:
+        if not self.userAnime:
+            return False
+        
+        self.similarIDs = SimilarityScores(self.features,self.userAnime,numRows)
+        if len(self.similarIDs) == numRows:
+            return True
+        else: #Change this to raise an error?
+            return False
+    
+        
+    # Method to that produces predictions (uid's) for what the user should watch next
+    # Uses KNeighborsClassifier with metric = 'cosine' to predict similar anime that the user might like based on their input
+    # Input: The number of anime uid's to save to predictions
+    # Return: True if successful, False otherwise
+    def predict(self,numRows):
+        if self.userAnime.empty or not self.knn:
+            return False
+        
+        self.predictions = prediction(self.animes,self.userAnime,numRows)
+        if len(self.predictions) == numRows:
+            return True
+        else: #Change this to raise an error?
+            return False
+        
+    # Method that prints the desired function's output in a readable format for the user
+    # Uses KNeighborsClassifier with metric = 'cosine' to predict similar anime that the user might like based on their input
+    # Input: The number of anime uid's to save to predictions
+    # Return: True if successful, False otherwise   
+    @staticmethod
+    def display(self,function:str) -> None:
+        if self.userAnime.empty or function not in ['predict','similar']:
+            return False
+        
+        displayAnime(self.animes,self.features,self.userAnime,function)
+        return True
+
+
+
 
 def ConsoleRecomendation():
     #Load in data
@@ -35,17 +98,3 @@ def ConsoleRecomendation():
     displayAnime(animeCopy,features,userAnime,'predict')
 
 
-
-# def webRecommendation(show: str) -> str:
-#     #Load in data
-#     animeCopy = DataImport()
-
-#     #Extract relevant features and encode
-#     features = FeatureEncoding(animeCopy)
-
-#     userAnime = UserInput(animeCopy,features,show,console = False)
-
-#     similarAnime = SimilarityScores(features,userAnime,3)  #Bring in the 3 indices of the 3 most similar anime to the user's input
-#     recIDX = similarAnime[1]
-
-#     return animeCopy.iloc[recIDX,1].strip("[]").split(",")[0].title() #Return the primary title for the most similar anime to the user's input
