@@ -5,14 +5,13 @@ Purpose: Create a webpage for the user to interact with program
 '''
 
 from flask import Flask,render_template,request,jsonify
-import Main as main
+from Main import Recommendation
 
-#Load in data
-animeCopy = main.DataImport()
-
+#Create instance of Recommendation object 
+recommender = Recommendation()
 #Extract relevant features and encode
-features = main.FeatureEncoding(animeCopy)
-titles = animeCopy['titles'].apply(lambda x: x.strip("[]").split(",")[0].strip("'").title())
+features = recommender.features
+titles = recommender.animes['titles'].apply(lambda x: x.strip("[]").split(",")[0].strip("'").title())
 titlesDict = {"titles":list(titles)}
 
 app = Flask(__name__) # Tells flask that everthing needed to run the site is in this file (hence '__name__')
@@ -22,12 +21,13 @@ def index():
     if request.method == 'POST':
         userShow = request.form['watched-show']
         print(userShow)
-        userAnime = main.UserInput(animeCopy,features,userShow,console = False) # Saves a pd.Dataframe containing the userAnime's features 
+        recommender.input(userShow)
+        userAnime = recommender.userAnime # Saves a pd.Dataframe containing the userAnime's features 
         print(userAnime.iloc[0,0])
-        similarAnime = main.SimilarityScores(features,userAnime,3)  #Bring in the 3 indices of the 3 most similar anime to the user's input
-        recIDX = similarAnime[0] #Uid of recommended show
-        print(recIDX)
-        recommendation = animeCopy.loc[animeCopy['uid'] == recIDX].iloc[0,1].strip("[]").split(",")[0].title() #Return the primary title for the most similar anime to the user's input
+        recommender.predict()
+        recID = recommender.predictions[0]  #Bring in the 5 uids of the anime that the user should like based on their input, then save the top anime
+        print(recID)
+        recommendation = recommender.animes.loc[recommender.animes['uid'] == recID].iloc[0,1].strip("[]").split(",")[0].title() #Return the primary title for the predicted anime to watch based on the user's input
         print(recommendation)
         return render_template('recommendation_index.html', recommended_show=f"{recommendation}", watched_show=userShow)
 

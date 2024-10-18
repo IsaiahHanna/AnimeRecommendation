@@ -24,12 +24,16 @@ class Recommendation:
         
     # Method to take in user input and save it to object
     # Return: True if successful, False otherwise
-    def input(self) -> bool:
+    def input(self,show:str = 'naruto') -> bool:
         if  self.animes.empty or  self.features.empty:
             return False
         
-        self.userAnime = UserInput(self.animes,self.features,console = self.console)
-        return True
+        if self.console:
+            self.userAnime = UserInput(self.animes,self.features,console = self.console)
+            return True
+        if not self.console:
+            self.userAnime = UserInput(self.animes,self.features,show,self.console)
+            return True
         
 
     # Method to that produces similar anime (uid's) to the user's input
@@ -86,26 +90,7 @@ def consoleUse():
     console.display(function ='similar')
     console.display(function = 'predict')
     
-consoleUse()
-# def ConsoleRecomendation():
-#     #Load in data
-#     animeCopy = DataImport()
+#consoleUse()
 
-#     #Extract relevant features and encode
-#     features = FeatureEncoding(animeCopy)
-
-
-#     userAnime = UserInput(animeCopy,features)
-
-#     print("Anime similar to your input are: ")
-#     displayAnime(animeCopy,features,userAnime,'similar')
-
-#     #Uncomment line below if the program is running too fast for user to read similar anime
-#     #time.sleep(5)
-
-#     print("Recommended anime for you to watch are: ")
-# #If you ever plan to use the model instead of the similarity function, please address the issue with the display anime function
-# #Issue: it has been changed to suit the similarityScore function that outputs the uid's but predict() still outputs indices
-#     displayAnime(animeCopy,features,userAnime,'predict')
 
 
