@@ -19,8 +19,8 @@ class Recommendation:
     def __init__(self,console:bool = False):
         self.console = console
         self.animes = DataImport()
-        self.features = FeatureEncoding()
-        self.knn,self.scaler = model(self.anime,self.features)
+        self.features = FeatureEncoding(self.animes)
+        self.knn,self.scaler = model(self.animes,self.features)
         
     # Method to take in user input and save it to object
     # Return: True if successful, False otherwise
@@ -28,7 +28,7 @@ class Recommendation:
         if  self.animes.empty or  self.features.empty:
             return False
         
-        self.userAnime = UserInput(self.animes,self.features)
+        self.userAnime = UserInput(self.animes,self.features,console = self.console)
         return True
         
 
@@ -37,7 +37,7 @@ class Recommendation:
     # Input: The number of anime uid's to save to similarIDs
     # Return: True if successful, False otherwise
     def similar(self,numRows:int = 5) -> bool:
-        if not self.userAnime:
+        if  self.userAnime.empty:
             return False
         
         self.similarIDs = SimilarityScores(self.features,self.userAnime,numRows)
@@ -51,11 +51,11 @@ class Recommendation:
     # Uses KNeighborsClassifier with metric = 'cosine' to predict similar anime that the user might like based on their input
     # Input: The number of anime uid's to save to predictions
     # Return: True if successful, False otherwise
-    def predict(self,numRows):
+    def predict(self,numRows:int = 5):
         if self.userAnime.empty or not self.knn:
             return False
         
-        self.predictions = prediction(self.animes,self.userAnime,numRows)
+        self.predictions = prediction(self.animes,self.features,self.userAnime,self.knn,self.scaler,numRows)
         if len(self.predictions) == numRows:
             return True
         else: #Change this to raise an error?
@@ -65,36 +65,47 @@ class Recommendation:
     # Uses KNeighborsClassifier with metric = 'cosine' to predict similar anime that the user might like based on their input
     # Input: The number of anime uid's to save to predictions
     # Return: True if successful, False otherwise   
-    @staticmethod
     def display(self,function:str) -> None:
         if self.userAnime.empty or function not in ['predict','similar']:
             return False
         
-        displayAnime(self.animes,self.features,self.userAnime,function)
-        return True
+        if function == 'predict':
+            displayAnime(self.animes,self.features,self.userAnime,self.predictions)
+            return True
+        if function == 'similar':
+            displayAnime(self.animes,self.features,self.userAnime,self.similarIDs)
+            return True
 
 
 
+def consoleUse():
+    console = Recommendation(console =  True)
+    console.input()
+    console.predict()
+    console.similar()
+    console.display(function ='similar')
+    console.display(function = 'predict')
+    
+consoleUse()
+# def ConsoleRecomendation():
+#     #Load in data
+#     animeCopy = DataImport()
 
-def ConsoleRecomendation():
-    #Load in data
-    animeCopy = DataImport()
-
-    #Extract relevant features and encode
-    features = FeatureEncoding(animeCopy)
+#     #Extract relevant features and encode
+#     features = FeatureEncoding(animeCopy)
 
 
-    userAnime = UserInput(animeCopy,features)
+#     userAnime = UserInput(animeCopy,features)
 
-    print("Anime similar to your input are: ")
-    displayAnime(animeCopy,features,userAnime,'similar')
+#     print("Anime similar to your input are: ")
+#     displayAnime(animeCopy,features,userAnime,'similar')
 
-    #Uncomment line below if the program is running too fast for user to read similar anime
-    #time.sleep(5)
+#     #Uncomment line below if the program is running too fast for user to read similar anime
+#     #time.sleep(5)
 
-    print("Recommended anime for you to watch are: ")
-#If you ever plan to use the model instead of the similarity function, please address the issue with the display anime function
-#Issue: it has been changed to suit the similarityScore function that outputs the uid's but predict() still outputs indices
-    displayAnime(animeCopy,features,userAnime,'predict')
+#     print("Recommended anime for you to watch are: ")
+# #If you ever plan to use the model instead of the similarity function, please address the issue with the display anime function
+# #Issue: it has been changed to suit the similarityScore function that outputs the uid's but predict() still outputs indices
+#     displayAnime(animeCopy,features,userAnime,'predict')
 
 

@@ -386,5 +386,3 @@ def mergeRecommendation(merge:str):
             print(f"On Index:{idx}, {len(df.iloc[idx,2])} recommendation ids were added.")
         df.to_csv('recommendationsAltered.csv',index=False)
     return
-
-DataCompleteCollection()

@@ -93,8 +93,8 @@ def model(animeDf,features,rewriteRecs: bool = False):
 
     return knn,scaler
 
-def prediction(df,userAnime,numRows):
-    knn,scaler,features = model(df)
+def prediction(df,features,userAnime,knn,scaler,numRows):
+    #knn,scaler,features = model(df)
     if not knn:
         print("KNN model failed to be instantiated. Exiting...")
         exit()

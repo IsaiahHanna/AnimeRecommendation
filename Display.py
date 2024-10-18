@@ -75,13 +75,8 @@ def UserInput(originalDf,features,show_name: str = 'naruto' ,console: bool = Tru
     Include additional information about each recommended anime, such as genres, airing dates, episodes, popularity, and member counts.
     """
 
-def displayAnime(originalDf,features,userAnime,function):
+def displayAnime(originalDf,features,userAnime,topAnime):
     titles = []
-    if function.lower() == 'similar':
-        topAnime = SimilarityScores(features,userAnime,5)
-    elif function.lower() == 'predict':
-        target = userAnime 
-        topAnime = prediction(originalDf,target,5)
     lengths = []
     for i in range(len(topAnime)):
         id = topAnime[i]
