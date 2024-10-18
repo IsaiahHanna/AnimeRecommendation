@@ -6,6 +6,7 @@ Purpose: Import Data File to main.py
 import os
 import sys
 import pandas as pd
+import numpy as np
 import requests
 import json
 import re
@@ -61,7 +62,8 @@ def DataImport(check:bool = False):
 def DataCompleteCollection():
     os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\ImportData')
     animeIDs = []
-    animeDf = {'uid':0,'titles':[],'genre':[],'aired':'','episodes': 0,'members':0,'popularity':0,'ranked':0,'score':0,'url':''}
+    newMoviesIDs = []
+    animeDf = {'uid':0,'titles':[],'genre':[],'themes':[],'demographics':[],'rating':'','aired':'','episodes': 0,'members':0,'popularity':0,'ranked':0,'score':0,'url':'','synopsis':'','studios':[],'licensors':[]}
     animeDf = pd.DataFrame(data = animeDf)
     try:
         with open("anime_cache.json",'r') as file:
@@ -69,6 +71,7 @@ def DataCompleteCollection():
             if not bool(data):
                 raise DataImportException(error_code=1001,message="Unable to open anime_cache.json")
             else:
+                knownMoviesIDs = pd.read_csv("moviesIDs.csv")
                 animeIDs = data['sfw']
                 if len(animeIDs) == 0:
                     raise DataImportException(error_code=1001,message="Unable to open anime_cache.json")
@@ -76,16 +79,24 @@ def DataCompleteCollection():
     except Exception as e:
         print(e)
         exit()
-        
+
+    animeIDs = pd.array(data = animeIDs)
+    animeIDs = animeIDs[~ (animeIDs.isin(knownMoviesIDs['id']))]
+
     idx = 0
     for id in animeIDs:
 
-        nextAnime = {'uid':0,'titles':[],'genre':[],'aired':'','episodes': 0,'members':0,'popularity':0,'ranked':0,'score':0,'url':''}
+        nextAnime = {'uid':0,'titles':[],'genre':[],'themes':[],'demographics':[],'rating':'','aired':'','episodes': 0,'members':0,'popularity':0,'ranked':0,'score':0,'url':'','synopsis':'','studios':[],'licensors':[]}
         try:
             response = requests.get(URL + "/anime/" + str(id))
             if response.status_code == 400:
                 raise DataImportException(error_code="2001",message="Request failed to retrieve data from jikan api.")
             data = response.json()['data']
+
+            if  data['type'] != 'TV' or "not yet" in data['status'].lower():
+                newMoviesIDs.append(id)
+                print(f"ID Number: {id}, is a movie and has been sent to moviesID dataframe/series")
+                continue
 
             #Create row with info for nextAnime
             nextAnime['uid'] = id
@@ -94,6 +105,18 @@ def DataCompleteCollection():
             nextAnime['genre'] = []
             for genre in data['genres']:
                 nextAnime['genre'].append(genre['name'])
+            if len(data['themes']) != 0:
+                for theme in data['themes']:
+                    nextAnime['themes'].append(theme['name'])
+            else:
+                nextAnime['themes'] = np.nan
+            if len(data['demographics']) != 0:
+                for demo in data['demographics']:
+                    nextAnime['demographics'].append(demo['name'])
+            else:
+                nextAnime['demographics'] = np.nan
+            if data['rating'] != '':
+                nextAnime['rating'] = data['rating']    
             if "?" in data['aired']['string']:
                 nextAnime['aired'] = f"{data['aired']['from'][:10]} - Present"  
             elif data['aired']['to'] == None:
@@ -106,6 +129,21 @@ def DataCompleteCollection():
             nextAnime['ranked'] = data['rank']
             nextAnime['score'] = data['score']
             nextAnime['url'] = data['url']
+            if data['synopsis'] != '':
+                nextAnime['synopsis'] = data['synopsis']
+            else: 
+                nextAnime['synopsis'] = np.nan
+            if len(data['studios']) != 0:
+                for studio in data['studios']:
+                    nextAnime['studios'].append(studio['name'])
+            else:
+                nextAnime['studios'] = np.nan
+            if len(data['licensors']) != 0:
+                for licensor in data['licensors']:
+                    nextAnime['licensors'].append(licensor['name'])
+            else:
+                nextAnime['licensors'] = np.nan
+
 
             animeDf.loc[idx] = nextAnime
             idx += 1
@@ -120,7 +158,11 @@ def DataCompleteCollection():
         #Uncomment out break if testing is needed for one row output
         #break 
 
-    animeDf.to_csv('animes.csv',sep=',',encoding='utf-8',index = 'False')
+    animeDf.to_csv('animesNew.csv',sep=',',encoding='utf-8',index = False)
+    moviesIDS = pd.DataFrame({'id':newMoviesIDs})
+    moviesIDS.to_csv('moviesIDs.csv',sep = ',',encoding = 'utf-8',index = False,mode = 'a',header = False)
+    outfile.close()
+    return
 
 def CheckMissingAnime() -> bool:
     os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\DataImport')
@@ -165,7 +207,7 @@ def CheckMissingAnime() -> bool:
             data = response.json()['data']
 
             #Prelimiary check for movies
-            if not "TV" == data['type'].lower() or "not yet" in data['Status'].lower(): 
+            if "TV" != data['type'] or "not yet" in data['status'].lower(): 
                 newMoviesIDs.append(id)
                 print(f"ID Number: {id}, is a movie and has been sent to moviesID dataframe/series")
                 continue
@@ -209,17 +251,19 @@ def CheckMissingAnime() -> bool:
     moviesIDS = pd.DataFrame({'id':newMoviesIDs})
     moviesIDS.to_csv('moviesIDs.csv',sep = ',',encoding = 'utf-8',index = False,mode = 'a',header = False)
 
+    outfile.close()
+
     if os.stat("outfile").st_size == 0:
         return True
     else:
         return False
 
-def RecommendationData(percent:float = 1):
+def RecommendationData(percent:float = 1,complete:bool = False):
     os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\ImportData')
-    outfile = open("ErrorFile.txt","a")
+    outfile = open("ErrorFile.txt","w")
     outfile.write("\n\n Beginning the gathering of Recommendation data.\n")
-    trainingData = pd.DataFrame({'uid':0,'recommendations':[]})
-    randomIDs = []
+    trainingData = pd.DataFrame({'uid':0,'recommendations':[],'recIDs':[]})
+    IDList = []
 
     #Import animeDf
     try:
@@ -235,16 +279,22 @@ def RecommendationData(percent:float = 1):
         try:
             numAnime = int(animeDf.shape[0] * percent)
             #random.seed()
-            randomIDs = random.sample(sorted(animeDf['uid']),numAnime)
-            if len(randomIDs) == 0:
+            IDList = random.sample(sorted(animeDf['uid']),numAnime)
+            if len(IDList) == 0:
                 raise DataImportException(error_code=2002,message="Unable to generate list containing random uids")
         except Exception as e:
             outfile.write(f"Error:{e}. Attempt to get random IDs failed.")
     else:
-        randomIDs = animeDf['uid']
+        IDList = animeDf['uid']
+    if not complete:
+        animeFinished = pd.read_csv("recommendations.csv")
+        animeUnfinished = animeDf[~ (animeDf['uid'].isin(animeFinished['uid']))]
+        IDList = animeUnfinished['uid']
     idx = 0
-    for id in randomIDs:
+    attempts = 0
+    for id in IDList:
         nextAnime = {'uid': id,'recommendations':[],'recIDs':[]}
+        attempts += 1
 
         try:
             response = requests.get(f"https://api.jikan.moe/v4/anime/{id}/recommendations")
@@ -258,30 +308,60 @@ def RecommendationData(percent:float = 1):
                     nextAnime['recommendations'].append(entry['entry']['title'])
                     nextAnime['recIDs'].append(entry['entry']['mal_id'])
             else:
-                continue
+                 nextAnime['recommendations'] = np.nan
+                 nextAnime['recIDs'] = np.nan
+                 print(f"On index {idx}: {nextAnime['uid']} added to training data with no recommendations")
             trainingData.loc[idx] = nextAnime
+            print(f"On index {idx}: {nextAnime['uid']} added to training data with recommendation {nextAnime['recommendations']}")
             idx += 1
-            print(f"On index {idx}: {nextAnime['uid']} added to training data with recommendation {nextAnime['recommendations'][0]}")
+            successRate = idx/attempts
+            print(f"Success Rate: {successRate}")
+            print(f"Recommendation Empty Ratio {trainingData.dropna(subset='recommendations',inplace=False).shape[0]}/{attempts}")
+            print(f"ID Empty Ratio {trainingData.dropna(subset='recIDs',inplace=False).shape[0]}/{attempts}")
+            if successRate < 0.9:
+                print(f"Success rate has dropped below suitable levels on record {idx}. Exiting...")
+                exit()
             time.sleep(1)
         
         except Exception as e:
             print(f"Error on index: {idx}.  Error Message: {e}.")
             outfile.write(f"Error Message: {e}. ID Number: {id}.")
+    
+    if complete:
+        trainingData.to_csv(f'recommendations_{date.today()}.csv',header=True,index=False,mode = 'w') #TODO: Move away from csv and lean into just returning the dataframe itself
+    if not complete:
+        trainingData.to_csv(f'recommendations_{date.today()}.csv',header=False,index=False,mode = 'a')
+    outfile.close()
 
-    trainingData.to_csv(f'recommendations_{date.today()}.csv',header=False,index=False,mode = 'a') #TODO: Move away from csv and lean into just returning the dataframe itself
-    return True #animeDf[animeDf['uid'].isin(randomIDs)] #Return true for function successful and the dataframe containing the random anime and their recommendations
+    if os.stat("ErrorFile.txt").st_size == 0:
+        return True
+    else:
+        return False #animeDf[animeDf['uid'].isin(randomIDs)] #Return true for function successful and the dataframe containing the random anime and their recommendations
 
 
-def mergeRecommendationNames():
-    df = pd.read_csv(os.getcwd()+"\\\ImportData\\recommendationsOriginal.csv")
-    animedf = pd.read_csv(os.getcwd()+"\\\ImportData\\animes.csv")
-    df['recommendations'] = df['recommendations'].apply(lambda x: x.strip('[]').split(',')[0])
-    animedf['titles'] = animedf['titles'].apply(lambda x: x.strip('[]').split(',')[0])
-    animes = {'recId':animedf['uid'],'recommendations':animedf['titles']}
-    animesdf = pd.DataFrame(animes)
-    mergedDf = pd.merge(animesdf,df,on = 'recommendations')
-    print(mergedDf.tail(20))
-    mergedDf.to_csv('recommendationsAltered.csv',index=False)
+#Takes a recommendations file that is missing RecIDs and adds the ID for all the recommendation
+def mergeRecommendation(merge:str):
+    if os.getcwd() != 'C:\\Users\\isaia\\AnimeRecommendation\\ImportData':
+        os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\ImportData')
+    df = pd.read_csv("recommendationsOriginal.csv")
+    animedf = pd.read_csv("animes.csv")
+    if merge.lower() == 'name':
+        df['recommendations'] = df['recommendations'].apply(lambda x: x.strip('[]').split(',')[0])
+        animedf['titles'] = animedf['titles'].apply(lambda x: x.strip('[]').split(',')[0])
+        animes = {'recId':animedf['uid'],'recommendations':animedf['titles']}
+        animesdf = pd.DataFrame(animes)
+        mergedDf = pd.merge(animesdf,df,on = 'recommendations')  
+        mergedDf.to_csv('recommendationsAltered.csv',index=False)
+
+    if merge.lower() == 'id':
+        df['RecommendationsID'] = df['RecommendationsID'].apply(lambda x: [])
+        for idx,row in df.iterrows(): #Loop over each row in the recommendations set
+            for rec in df.iloc[idx,1].strip('[]').split(','):
+                rec = rec.strip("'")
+                recID = animedf[animedf['titles'].apply(lambda x: x.strip('[]').split(',')[0]) == rec] #Check for which anime's first title matches the recommendation
+                df.iloc[idx,2].append(recID)
+            print(f"On Index:{idx}, {len(df.iloc[idx,2])} recommendation ids were added.")
+        df.to_csv('recommendationsAltered.csv',index=False)
     return
 
-RecommendationData()
+DataCompleteCollection()
