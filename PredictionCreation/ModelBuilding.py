@@ -27,7 +27,7 @@ def model(animeDf,features,rewriteRecs: bool = False):
             print("Recommendation failed, exiting program.")
             exit()
     trainingData = pd.read_csv("recommendationsAltered.csv")
-    animeDf = pd.read_csv('animes.csv')
+    #animeDf = pd.read_csv('animes.csv')
     #Do another check to make sure that no movies/music/OVA are in dataset
     
     for col in animeDf.columns.tolist():

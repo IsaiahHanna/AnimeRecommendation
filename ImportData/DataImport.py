@@ -46,7 +46,7 @@ def DataImport(check:bool = False):
         else: 
             return animeCurrent.iloc[idx,4]
       
-    animeCurrent = animeCopy.copy()
+    animeCurrent = animeCopy.loc[animeCopy['episodes'] == np.nan].copy()
     animeCurrent['aired'] = animeCopy['aired'].apply(lambda x: 'Current' if 'Present' in x else x)
     animeFinished = animeCurrent[animeCurrent['aired'] != 'Current']
     animeCurrent = animeCopy[~animeCopy['uid'].isin(animeFinished['uid'])]
@@ -62,7 +62,7 @@ def DataCompleteCollection():
     os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\ImportData')
     animeIDs = []
     newMoviesIDs = []
-    animeDf = {'uid':0,'titles':[],'genre':[],'themes':[],'demographics':[],'rating':'','aired':'','episodes': 0,'members':0,'popularity':0,'ranked':0,'score':0,'url':'','synopsis':'','studios':[],'licensors':[]}
+    animeDf = {'uid':0,'titles':[],'genre':[],'type':'','themes':[],'demographics':[],'rating':'','aired':'','episodes': 0,'members':0,'popularity':0,'ranked':0,'score':0,'url':'','synopsis':'','studios':[],'licensors':[]}
     animeDf = pd.DataFrame(data = animeDf)
     try:
         with open("anime_cache.json",'r') as file:
@@ -70,7 +70,7 @@ def DataCompleteCollection():
             if not bool(data):
                 raise DataImportException(error_code=1001,message="Unable to open anime_cache.json")
             else:
-                knownMoviesIDs = pd.read_csv("moviesIDs.csv")
+                knownMoviesIDs = pd.read_csv("moviesIDsRedo.csv")
                 animeIDs = data['sfw']
                 if len(animeIDs) == 0:
                     raise DataImportException(error_code=1001,message="Unable to open anime_cache.json")
@@ -85,14 +85,14 @@ def DataCompleteCollection():
     idx = 0
     for id in animeIDs:
 
-        nextAnime = {'uid':0,'titles':[],'genre':[],'themes':[],'demographics':[],'rating':'','aired':'','episodes': 0,'members':0,'popularity':0,'ranked':0,'score':0,'url':'','synopsis':'','studios':[],'licensors':[]}
+        nextAnime = {'uid':0,'titles':[],'type':'','genre':[],'themes':[],'demographics':[],'rating':'','aired':'','episodes': 0,'members':0,'popularity':0,'ranked':0,'score':0,'url':'','synopsis':'','studios':[],'licensors':[]}
         try:
             response = requests.get(URL + "/anime/" + str(id))
             if response.status_code == 400:
                 raise DataImportException(error_code="2001",message="Request failed to retrieve data from jikan api.")
             data = response.json()['data']
 
-            if  data['type'] != 'TV' or "not yet" in data['status'].lower():
+            if data['type'] not in ['ONA','OVA','TV'] or "not yet" in data['status'].lower():
                 newMoviesIDs.append(id)
                 print(f"ID Number: {id}, is a movie and has been sent to moviesID dataframe/series")
                 continue
@@ -104,6 +104,7 @@ def DataCompleteCollection():
             nextAnime['genre'] = []
             for genre in data['genres']:
                 nextAnime['genre'].append(genre['name'])
+            nextAnime['type'] = data['type']
             if len(data['themes']) != 0:
                 for theme in data['themes']:
                     nextAnime['themes'].append(theme['name'])
@@ -118,8 +119,11 @@ def DataCompleteCollection():
                 nextAnime['rating'] = data['rating']    
             if "?" in data['aired']['string']:
                 nextAnime['aired'] = f"{data['aired']['from'][:10]} - Present"  
-            elif data['aired']['to'] == None:
-                continue
+            elif data['aired']['to'] == None and data['type'] in ['ONA','OVA','TV']: #Second half is redundant since this is checked earlier
+                if data['aired']['from'] == None:
+                    nextAnime['aired'] = "Unknown"
+                else:
+                    f"{data['aired']['from'][:10]} - {data['aired']['from'][:10]}"
             else:
                 nextAnime['aired'] = f"{data['aired']['from'][:10]} - {data['aired']['to'][:10]}"  
             nextAnime['episodes'] = data['episodes']
@@ -159,12 +163,14 @@ def DataCompleteCollection():
 
     animeDf.to_csv('animesNew.csv',sep=',',encoding='utf-8',index = False)
     moviesIDS = pd.DataFrame({'id':newMoviesIDs})
-    moviesIDS.to_csv('moviesIDs.csv',sep = ',',encoding = 'utf-8',index = False,mode = 'a',header = False)
+    moviesIDS.to_csv('moviesIDsRedo.csv',sep = ',',encoding = 'utf-8',index = False,mode = 'a',header = False)
     outfile.close()
     return
 
+
+
 def CheckMissingAnime() -> bool:
-    os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\DataImport')
+    os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\ImportData')
     animeIDs = pd.DataFrame()
     #movieIDs = pd.read_csv('animeMovies.csv')
     newMoviesIDs = []
@@ -174,7 +180,7 @@ def CheckMissingAnime() -> bool:
             if not bool(data):
                 raise DataImportException(error_code=1001,message="Unable to open anime_cache.json")
             else:
-                animeDf = pd.read_csv('newAnimes.csv')
+                animeDf = pd.read_csv('animes.csv')
                 knownMovies = pd.read_csv('moviesIDs.csv')
                 if animeDf.empty:
                     raise DataImportException(error_code=1001,message="Unable to write animes.csv to dataframe")
@@ -192,13 +198,13 @@ def CheckMissingAnime() -> bool:
     animeIDs = animeIDs[~ (animeIDs['uid'].isin(animeDf['uid']))]
     animeIDs = animeIDs[~ (animeIDs['uid'].isin(knownMovies['id']))]
 
-    newAnimeDf = {'uid':0,'titles':[],'genre':[],'themes':[],'demographics':[],'rating':'','aired':'','episodes': 0,'members':0,'popularity':0,'ranked':0,'score':0,'url':'','synopsis':'','studios':[],'licensors':[]}
+    newAnimeDf = {'uid':0,'titles':[],'genre':[],'type':'','themes':[],'demographics':[],'rating':'','aired':'','episodes': 0,'members':0,'popularity':0,'ranked':0,'score':0,'url':'','synopsis':'','studios':[],'licensors':[]}
     newAnimeDf = pd.DataFrame(newAnimeDf)
 
     idx = 0
     for id in animeIDs['uid']:
 
-        nextAnime = {'uid':0,'titles':[],'genre':[],'themes':[],'demographics':[],'rating':'','aired':'','episodes': 0,'members':0,'popularity':0,'ranked':0,'score':0,'url':'','synopsis':'','studios':[],'licensors':[]}
+        nextAnime = {'uid':0,'titles':[],'genre':[],'type':'','themes':[],'demographics':[],'rating':'','aired':'','episodes': 0,'members':0,'popularity':0,'ranked':0,'score':0,'url':'','synopsis':'','studios':[],'licensors':[]}
         try:
             response = requests.get(URL + "/anime/" + str(id))
             if response.status_code == 400:
@@ -206,7 +212,7 @@ def CheckMissingAnime() -> bool:
             data = response.json()['data']
 
             #Prelimiary check for movies
-            if "TV" != data['type'] or "not yet" in data['status'].lower(): 
+            if data['type'] not in ['ONA','OVA','TV'] or "not yet" in data['status'].lower(): 
                 newMoviesIDs.append(id)
                 print(f"ID Number: {id}, is a movie and has been sent to moviesID dataframe/series")
                 continue
@@ -232,8 +238,11 @@ def CheckMissingAnime() -> bool:
                 nextAnime['rating'] = data['rating']    
             if "?" in data['aired']['string']:
                 nextAnime['aired'] = f"{data['aired']['from'][:10]} - Present"  
-            elif data['aired']['to'] == None:
-                continue
+            elif data['aired']['to'] == None and data['type'] in ['ONA','OVA','TV']: #Second half is redundant since this is checked earlier
+                if data['aired']['from'] == None:
+                    nextAnime['aired'] = "Unknown"
+                else:
+                    f"{data['aired']['from'][:10]} - {data['aired']['from'][:10]}"
             else:
                 nextAnime['aired'] = f"{data['aired']['from'][:10]} - {data['aired']['to'][:10]}"  
             nextAnime['episodes'] = data['episodes']
@@ -276,7 +285,7 @@ def CheckMissingAnime() -> bool:
 
     outfile.close()
 
-    if os.stat("outfile").st_size == 0:
+    if os.stat("ErrorFile.txt").st_size == 0:
         return True
     else:
         return False
@@ -386,3 +395,11 @@ def mergeRecommendation(merge:str):
             print(f"On Index:{idx}, {len(df.iloc[idx,2])} recommendation ids were added.")
         df.to_csv('recommendationsAltered.csv',index=False)
     return
+
+# while True:
+#     finished = CheckMissingAnime()
+#     if finished:
+#         print("ALL FINISHED SUCCESSFULLY")
+#         exit()
+#     else:
+#         continue
