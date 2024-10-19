@@ -41,10 +41,13 @@ def DataImport(check:bool = False):
 
     def estimateEpisodes(aired,idx):
         if 'Present' in aired:
-            aired = (abs(int(aired[0:4])-2024)*40)
-            return aired
+            episodesEst = (abs(int(aired[0:4])-2024)*40)
+            return episodesEst
+        elif "Unknown" in aired:
+            episodesEst = 10
+            return episodesEst
         else: 
-            return animeCurrent.iloc[idx,4]
+            return 10
       
     animeCurrent = animeCopy.loc[animeCopy['episodes'] == np.nan].copy()
     animeCurrent['aired'] = animeCopy['aired'].apply(lambda x: 'Current' if 'Present' in x else x)
@@ -52,8 +55,10 @@ def DataImport(check:bool = False):
     animeCurrent = animeCopy[~animeCopy['uid'].isin(animeFinished['uid'])]
     animeFinished  = animeFinished.dropna(subset=['episodes'])
     for idx in range(len(animeCurrent)):
-        animeCurrent.iloc[idx,4] = int(estimateEpisodes(animeCurrent.iloc[idx,3],idx))
+        animeCurrent.iloc[idx,4] = int(estimateEpisodes(animeCurrent.iloc[idx,7],idx))
     animeConcat = pd.concat([animeCurrent,animeFinished]).sort_values('uid')
+    for val in ['na',np.nan,pd.NaT]:
+        animeConcat['episodes'] = animeConcat['episodes'].replace(val,10)
     #animeCopy = animeConcat.dropna(subset='episodes')
     #print(animeConcat['episodes'].isna().values.any())
     return animeConcat
