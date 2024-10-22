@@ -55,7 +55,7 @@ def DataImport(check:bool = False):
     animeCurrent = animeCopy[~animeCopy['uid'].isin(animeFinished['uid'])]
     animeFinished  = animeFinished.dropna(subset=['episodes'])
     for idx in range(len(animeCurrent)):
-        animeCurrent.iloc[idx,4] = int(estimateEpisodes(animeCurrent.iloc[idx,7],idx))
+        animeCurrent.iloc[idx,8] = int(estimateEpisodes(animeCurrent.iloc[idx,7],idx))
     animeConcat = pd.concat([animeCurrent,animeFinished]).sort_values('uid')
     for val in ['na',np.nan,pd.NaT]:
         animeConcat['episodes'] = animeConcat['episodes'].replace(val,10)
@@ -114,12 +114,12 @@ def DataCompleteCollection():
                 for theme in data['themes']:
                     nextAnime['themes'].append(theme['name'])
             else:
-                nextAnime['themes'] = np.nan
+                nextAnime['themes'] = []
             if len(data['demographics']) != 0:
                 for demo in data['demographics']:
                     nextAnime['demographics'].append(demo['name'])
             else:
-                nextAnime['demographics'] = np.nan
+                nextAnime['demographics'] = []
             if data['rating'] != '':
                 nextAnime['rating'] = data['rating']    
             if "?" in data['aired']['string']:
@@ -140,17 +140,17 @@ def DataCompleteCollection():
             if data['synopsis'] != '':
                 nextAnime['synopsis'] = data['synopsis']
             else: 
-                nextAnime['synopsis'] = np.nan
+                nextAnime['synopsis'] = []
             if len(data['studios']) != 0:
                 for studio in data['studios']:
                     nextAnime['studios'].append(studio['name'])
             else:
-                nextAnime['studios'] = np.nan
+                nextAnime['studios'] = []
             if len(data['licensors']) != 0:
                 for licensor in data['licensors']:
                     nextAnime['licensors'].append(licensor['name'])
             else:
-                nextAnime['licensors'] = np.nan
+                nextAnime['licensors'] = []
 
 
             animeDf.loc[idx] = nextAnime
@@ -408,3 +408,6 @@ def mergeRecommendation(merge:str):
 #         exit()
 #     else:
 #         continue
+
+
+
