@@ -36,8 +36,9 @@ def model(animeDf,features,rewriteRecs: bool = False):
     
     #features = FeatureEncoding(animeDf)
     trainingData = pd.merge(trainingData,features,on='uid')
+    trainingData.sort_values(by = 'uid',inplace= True) # Sorted so that it is easier to debug and see what uid == 1 looks like scaled
+    trainingData.set_index('uid',inplace=True)
     x = trainingData.drop(['recId','recommendations'],axis = 1)
-    x.sort_values(by = 'uid',inplace= True) # Sorted so that it is easier to debug and see what uid == 1 looks like scaled
     y = trainingData['recId']
     xTrain,xTest,yTrain,yTest = train_test_split(x,y,test_size = 0.2)
 
@@ -55,7 +56,7 @@ def model(animeDf,features,rewriteRecs: bool = False):
     accuracy = accuracy_score(yTest, yPred)
 
     #Uncomment line below to check accuracy
-    #print("Training Accuracy:", accuracy) 
+    print("Training Accuracy:", accuracy) 
 
     #Cross validate and try various values of k
     kValues = [i for i in range (1,31)]
@@ -73,22 +74,15 @@ def model(animeDf,features,rewriteRecs: bool = False):
     knn = KNeighborsClassifier(n_neighbors = kValues[np.argmax(scores)],metric='cosine')
     knn.fit(xScaled,y)
 
-    '''
-    Note that x has columns: ['uid', 'members', 'episodes', 'Action', 'Adventure', 'Avant Garde',
-       'Award Winning', 'Boys Love', 'Comedy', 'Drama', 'Ecchi', 'Fantasy',
-       'Girls Love', 'Gourmet', 'Horror', 'Mystery', 'Romance', 'Sci-Fi',
-       'Slice of Life', 'Sports', 'Supernatural', 'Suspense']
-    Reminder: y is just the recordID of the show that is recommended 
-    '''
     yPred = knn.predict(xTest)
     accuracy = accuracy_score(yTest, yPred)
 
+    #Uncomment line below to check accuracy
+    print("Accuracy:", accuracy)
     if accuracy < 0.9:
         print("Accuracy sub-ninety percent. Exiting...")
         exit()
 
-    #Uncomment line below to check accuracy
-    #print("Accuracy:", accuracy)
 
 
     return knn,scaler
@@ -103,7 +97,7 @@ def prediction(df,features,userAnime,knn,scaler,numRows):
         exit()
     
     #Find nearest neighbors of user's input
-    userAnime = userAnime[features.columns.tolist()]
+    #userAnime = userAnime[features.columns.tolist()]
     userScaled = scaler.transform(userAnime)
     neighborsDist,neighborsInd = knn.kneighbors(userScaled,n_neighbors = 6)  #Returns the distance and indices of the nearest neighbors (default is based on the k used in model's constructor)
     recs = np.array(df.iloc[neighborsInd.tolist()[0][1:],0]).tolist()

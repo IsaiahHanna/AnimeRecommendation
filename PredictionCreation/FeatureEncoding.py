@@ -13,7 +13,7 @@ def FeatureEncoding(animeCopy):
     #Extract relevant features from the dataset that will be used for recommendation, such as genres, airing dates, episodes, popularity, and members.
     #Convert categorical features like genres into a format suitable for analysis (e.g., one-hot encoding or representing them as lists).
 
-    features = animeCopy[['uid','genre','type','themes','demographics','rating','members','episodes','studios','licensors']] #In the future add aired?
+    features = animeCopy[['uid','genre','type','themes','demographics','rating','members','studios','licensors']] #In the future add episodes and/or aired?
 
     """
     Encode the features of each show into a numerical vector. This can include:
