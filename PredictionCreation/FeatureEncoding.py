@@ -5,7 +5,7 @@ Purpose: Select Features and Return Encoded df
 '''
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.preprocessing import MultiLabelBinarizer, OneHotEncoder
 import ast
 
 def FeatureEncoding(animeCopy):
@@ -13,7 +13,7 @@ def FeatureEncoding(animeCopy):
     #Extract relevant features from the dataset that will be used for recommendation, such as genres, airing dates, episodes, popularity, and members.
     #Convert categorical features like genres into a format suitable for analysis (e.g., one-hot encoding or representing them as lists).
 
-    features = animeCopy[['uid','genre','type','themes','demographics','rating','members','studios','licensors']] #In the future add episodes and/or aired?
+    features = animeCopy[['uid','genre','type','themes','demographics','rating','members','studios','licensors','synopsis']] #In the future add episodes and/or aired?
 
     """
     Encode the features of each show into a numerical vector. This can include:
@@ -39,13 +39,8 @@ def FeatureEncoding(animeCopy):
 
     #Loop that will perform the encoding for each string-feature
     for feature in stringFeatures:
-        unique_entries = set(feature for feature in features[feature])
-        mlb = MultiLabelBinarizer(classes = sorted(unique_entries))
-        features_encoded =  mlb.fit_transform(features[feature])
-        features_df = pd.DataFrame(features_encoded,columns=mlb.classes_)
-        features_df = features_df.set_index(features.index)
-        features = pd.concat([features,features_df],axis = 1)
-        features = features.drop([feature],axis = 1)
-
+        encoded = pd.get_dummies(features[feature], prefix=feature)
+        features = features.drop(feature, axis=1)
+        features = features.join(encoded)
 
     return features
