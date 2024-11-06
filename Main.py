@@ -20,7 +20,7 @@ class Recommendation:
         self.console = console
         self.animes = DataImport()
         self.features = FeatureEncoding(self.animes)
-        self.knn,self.scaler = model(self.animes,self.features)
+        self.knn = model(self.animes,self.features)
         
     # Method to take in user input and save it to object
     # Return: True if successful, False otherwise
@@ -59,7 +59,7 @@ class Recommendation:
         if self.userAnime.empty or not self.knn:
             return False
         
-        self.predictions = prediction(self.animes,self.features,self.userAnime,self.knn,self.scaler,numRows)
+        self.predictions = prediction(self.animes,self.features,self.userAnime,self.knn,numRows)
         if len(self.predictions) == numRows:
             return True
         else: #Change this to raise an error?
