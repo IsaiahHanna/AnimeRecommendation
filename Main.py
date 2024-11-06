@@ -90,7 +90,7 @@ def consoleUse():
     console.display(function ='similar')
     console.display(function = 'predict')
     
-consoleUse()
+#consoleUse()
 
 
 

@@ -25,7 +25,7 @@ def index():
         userAnime = recommender.userAnime # Saves a pd.Dataframe containing the userAnime's features 
         print(userAnime.iloc[0,0])
         recommender.predict()
-        recID = recommender.predictions[0]  #Bring in the 5 uids of the anime that the user should like based on their input, then save the top anime
+        recID = recommender.predictions[1]  #Bring in the 5 uids of the anime that the user should like based on their input, then save the top anime
         print(recID)
         recommendation = recommender.animes.loc[recommender.animes['uid'] == recID].iloc[0,1].strip("[]").split(",")[0].title() #Return the primary title for the predicted anime to watch based on the user's input
         print(recommendation)
