@@ -31,6 +31,6 @@ def prediction(df,features,userAnime,knn,numRows):
     #userAnime = userAnime[features.columns.tolist()]
     #userScaled = scaler.transform(userAnime)
     indices = knn.kneighbors(userAnime.set_index('uid'),n_neighbors= 6,return_distance=False)  #Returns the distance and indices of the nearest neighbors (default is based on the k used in model's constructor)
-    recs = features['uid'].iloc[indices.flatten()].tolist()
+    recs = features['uid'].iloc[indices.flatten()].tolist()[1:]
     return recs
 

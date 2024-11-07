@@ -89,8 +89,4 @@ def displayAnime(originalDf,features,userAnime,topAnime):
         id = topAnime[i]
         print("{:<{}} {:<15} {:<15} {:<15}".format(titles[i].title(),MaxStrLen,originalDf.loc[originalDf['uid'] == id]['genre'].iloc[0].split(",")[0][2:-1],originalDf.loc[originalDf['uid'] == id]['aired'].iloc[0].split("-")[0],originalDf.loc[originalDf['uid'] == id]['episodes'].iloc[0]))
     print("\n")
-    """
-    TODO
-    Present Recommendations
-    Include additional information about each recommended anime, such as genres, airing dates, episodes, popularity, and member counts.
-    """
+    

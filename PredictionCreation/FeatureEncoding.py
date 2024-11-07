@@ -5,7 +5,7 @@ Purpose: Select Features and Return Encoded df
 '''
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import MultiLabelBinarizer, OneHotEncoder
+from sklearn.preprocessing import MultiLabelBinarizer, OneHotEncoder, Normalizer, StandardScaler
 import ast
 
 def FeatureEncoding(animeCopy):
@@ -25,6 +25,7 @@ def FeatureEncoding(animeCopy):
     # Start encoding the columns that contain lists
     listFeatures = ['genre','themes','demographics','studios','licensors']
     stringFeatures = ['type','rating']
+    numFeatures = [i for i in features.columns.tolist() if ( i not in listFeatures and i not in stringFeatures and i != 'uid')]
 
     # Loop that will perform the encoding for each list-feature
     for feature in listFeatures:
@@ -35,12 +36,14 @@ def FeatureEncoding(animeCopy):
         features_df = pd.DataFrame(features_encoded, columns=mlb.classes_)
         features_df = features_df.set_index(features.index)
         features = pd.concat([features,features_df],axis = 1)
-        features = features.drop([feature],axis = 1)
+        features.drop([feature],axis = 1,inplace = True)
 
     #Loop that will perform the encoding for each string-feature
     for feature in stringFeatures:
-        encoded = pd.get_dummies(features[feature], prefix=feature)
-        features = features.drop(feature, axis=1)
+        encoded = pd.get_dummies(features[feature], prefix=feature,dtype = int)
+        features.drop(feature,axis = 1,inplace = True)
         features = features.join(encoded)
 
+    normalizer = StandardScaler()
+    features[numFeatures] = normalizer.fit_transform(features[numFeatures])
     return features
