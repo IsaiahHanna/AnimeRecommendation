@@ -33,8 +33,8 @@ def DataImport(check:bool = False):
                 break
             elif i == 3:
                 exit()
-    with open('animes.csv',encoding = 'latin-1') as f:
-        animeData = pd.read_csv(f)
+    
+    animeData = pd.read_csv('animes.csv',encoding='utf-8')
     animeCopy = animeData.copy()
     animeCopy['titles'] = animeCopy['titles'].apply(lambda x: x.lower().strip())
     animeCopy = animeCopy[~((animeCopy['episodes'] == 'na') | (animeCopy['episodes'] == 1))]

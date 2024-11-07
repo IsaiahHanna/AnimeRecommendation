@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta http-equiv="content-type" content= "text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="A recommendation site for anime.">
     <title>Anime Recommendation</title>
@@ -45,27 +45,31 @@
     margin: 0;
     color: white;
 ">
-    <!-- Header Section -->
-    <header style = 'text-align: center'>
-        <h1 style = 'font-size:100px; height:50px;'>Welcome to Anime Recommendations!</h1>
-        <p style = 'font-size: 50px; height: 200px'>Discover what anime you should watch next!</p>
-    </header>
-
+    
     <!-- Main Content Section -->
     <main>
 
         {% if recommended_show %}
             <!-- Show recommendation -->
+             <section id = 'result' style = 'text-align: center; font-size: 40px'>
             <h2>Thank you for submitting: {{ watched_show }}!</h2>
             <p>Based on your input, we recommend you watch: <strong>{{ recommended_show }}</strong></p>
             
             <!-- Start over button -->
             <form action="/" method="GET">
-                <button type="submit" style="padding: 5px 10px; margin-top: 20px;">Ask for Another Recommendation</button>
+                <button type="submit" style="padding: 20px 80px; margin-top: 200px;">Ask for Another Recommendation</button>
             </form>
-
+        </section>
+    </main>
         {% else %}
 
+        <!-- Header Section -->
+    <header style = 'text-align: center'>
+        <h1 style = 'font-size:100px; height:50px;'>Welcome to Anime Recommendations!</h1>
+        <p style = 'font-size: 50px; height: 200px'>Discover what anime you should watch next!</p>
+    </header>
+
+    <main>
             <!-- User Input Section -->
             <section id="user-input" style = 'text-align: center;'>
                 <h2>What Anime Have You Watched Recently?</h2>
