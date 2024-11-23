@@ -44,6 +44,6 @@ def FeatureEncoding(animeCopy):
         features.drop(feature,axis = 1,inplace = True)
         features = features.join(encoded)
 
-    normalizer = StandardScaler()
-    features[numFeatures] = normalizer.fit_transform(features[numFeatures])
+    scaler = StandardScaler()
+    features[numFeatures] = scaler.fit_transform(features[numFeatures])
     return features

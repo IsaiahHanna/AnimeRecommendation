@@ -6,6 +6,9 @@ Purpose: Create a webpage for the user to interact with program
 
 from flask import Flask,render_template,request,jsonify
 from Main import Recommendation
+import requests
+from ImportData.api_Url import URL
+from ExceptionsList import DataImportException
 
 #Create instance of Recommendation object 
 recommender = Recommendation()
@@ -20,16 +23,22 @@ app = Flask(__name__) # Tells flask that everthing needed to run the site is in 
 def index():
     if request.method == 'POST':
         userShow = request.form['watched-show']
-        print(userShow)
         recommender.input(userShow)
         userAnime = recommender.userAnime # Saves a pd.Dataframe containing the userAnime's features 
-        print(userAnime.iloc[0,0])
         recommender.predict()
         recID = recommender.predictions[0]  #Bring in the 5 uids of the anime that the user should like based on their input, then save the top anime
-        print(recID)
+        
+        try:
+            response = requests.get(URL +  "/anime/" + str(int(recID)))
+            if response.status_code == 400:
+                raise DataImportException(error_code="2001",message="Request failed to retrieve data from jikan api.")
+            data = response.json()['data']
+            image = data['images']['jpg']['image_url']
+        except Exception as e:
+            print(e)
+
         recommendation = recommender.animes.loc[recommender.animes['uid'] == recID].iloc[0,1].strip("[]").split(",")[0].title() #Return the primary title for the predicted anime to watch based on the user's input
-        print(recommendation)
-        return render_template('recommendation_index.html', recommended_show=f"{recommendation}", watched_show=userShow)
+        return render_template('recommendation_index.html', recommended_show=f"{recommendation}", watched_show=userShow,image_url = image)
 
     return render_template('recommendation_index.html',titles = titles)
 
