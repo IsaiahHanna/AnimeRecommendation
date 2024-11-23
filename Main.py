@@ -59,8 +59,8 @@ class Recommendation:
         if self.userAnime.empty or not self.knn:
             return False
         
-        self.predictions = prediction(self.animes,self.features,self.userAnime,self.knn,numRows)
-        if len(self.predictions) == numRows:
+        self.prediction = prediction(self.features,self.userAnime,self.knn,numRows)
+        if len(self.prediction) == numRows:
             return True
         else: #Change this to raise an error?
             return False
@@ -74,7 +74,7 @@ class Recommendation:
             return False
         
         if function == 'predict':
-            displayAnime(self.animes,self.features,self.userAnime,self.predictions)
+            displayAnime(self.animes,self.features,self.userAnime,self.prediction)
             return True
         if function == 'similar':
             displayAnime(self.animes,self.features,self.userAnime,self.similarIDs)

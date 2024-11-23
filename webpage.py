@@ -25,9 +25,8 @@ def index():
         userShow = request.form['watched-show']
         recommender.input(userShow)
         userAnime = recommender.userAnime # Saves a pd.Dataframe containing the userAnime's features 
-        recommender.predict()
-        recID = recommender.predictions[0]  #Bring in the 5 uids of the anime that the user should like based on their input, then save the top anime
-        
+        recommender.predict(numRows = 1) # Only ask for one row
+        recID = recommender.prediction[0]  #Bring in the uid of the anime that the user should like based on their input. Note the [0] is due to it being a list
         try:
             response = requests.get(URL +  "/anime/" + str(int(recID)))
             if response.status_code == 400:
