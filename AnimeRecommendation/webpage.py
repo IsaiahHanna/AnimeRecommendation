@@ -9,6 +9,7 @@ from Main import Recommendation
 import requests
 from ImportData.api_Url import URL
 from ExceptionsList import DataImportException
+from waitress import serve
 
 #Create instance of Recommendation object 
 recommender = Recommendation()
@@ -46,5 +47,6 @@ def index():
 def getShows():
     return jsonify(titlesDict)
 
-app.run(host = "0.0.0.0", port = 8080,debug=True) #Tells flask to run on my machine and which port
+
+serve(app,host = '0.0.0.0',port = 8080)
 
