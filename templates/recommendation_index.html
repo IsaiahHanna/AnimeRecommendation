@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en",overflow:hidden>
 <head>
     <meta http-equiv="content-type" content= "text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,6 +44,7 @@
     height: 100vh;                     /* Makes sure the body takes the full viewport height */
     margin: 0;
     color: white;
+    overscroll-behavior:none;
 ">
     
     <!-- Main Content Section -->
@@ -51,13 +52,13 @@
 
         {% if recommended_show %}
             <!-- Show recommendation -->
-             <section id = 'result' style = 'text-align: center; font-size: 40px'>
+             <section id = 'result' style = 'text-align: center; font-size: 4vh'>
             <h2>Thank you for submitting: {{ watched_show }}!</h2>
             <p>Based on your input, we recommend you watch: <strong>{{ recommended_show }}</strong></p>
-            <img src = {{image_url}} , alt = 'Anime Picture' , style = "border: #FFFFFF 6px outset; width: 300px">
+            <img src = {{image_url}} , alt = 'Anime Picture' , style = "border: #FFFFFF 0.8vh outset; width: 17vw">
             <!-- Start over button -->
             <form action="/" method="GET">
-                <button type="submit" style="padding: 20px 80px; margin-top: 100px;">Ask for Another Recommendation</button>
+                <button type="submit" style="padding: 2vh 3vw; margin-top: 14vh;">Ask for Another Recommendation</button>
             </form>
         </section>
     </main>
@@ -65,8 +66,8 @@
 
         <!-- Header Section -->
     <header style = 'text-align: center'>
-        <h1 style = 'font-size:100px; height:50px;'>Welcome to Anime Recommendations!</h1>
-        <p style = 'font-size: 50px; height: 200px'>Discover what anime you should watch next!</p>
+        <h1 style = 'font-size:5vw; height:10vh;'>Welcome to Anime Recommendations!</h1>
+        <p style = 'font-size: 2.5vw; height: 20vh'>Discover what anime you should watch next!</p>
     </header>
 
     <main>

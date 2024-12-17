@@ -13,18 +13,19 @@ import re
 import time
 import random
 from datetime import date
-directory_path = os.path.abspath("C:\\Users\\isaia\\AnimeRecommendation")
+directory_path = os.path.abspath(os.getcwd())
 sys.path.append(directory_path)
 from ExceptionsList import DataImportException
 from ImportData.api_Url import URL
 
 
-
-os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\ImportData')
+if os.path.basename(os.getcwd()) != 'ImportData':
+    os.chdir(os.path.join(os.getcwd(),'ImportData'))
 
 
 def DataImport(check:bool = False):
-    os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\ImportData')
+    if os.path.basename(os.getcwd()) != 'ImportData':
+        os.chdir(os.path.join(os.getcwd(),'ImportData'))
     # Load the dataset
     if check:
         for i in range(4):
@@ -64,7 +65,8 @@ def DataImport(check:bool = False):
     return animeConcat
 
 def DataCompleteCollection():
-    os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\ImportData')
+    if os.path.basename(os.getcwd()) != 'ImportData':
+        os.chdir(os.path.join(os.getcwd(),'ImportData'))
     animeIDs = []
     newMoviesIDs = []
     animeDf = {'uid':0,'titles':[],'genre':[],'type':'','themes':[],'demographics':[],'rating':'','aired':'','episodes': 0,'members':0,'popularity':0,'ranked':0,'score':0,'url':'','synopsis':'','studios':[],'licensors':[]}
@@ -175,7 +177,8 @@ def DataCompleteCollection():
 
 
 def CheckMissingAnime() -> bool:
-    os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\ImportData')
+    if os.path.basename(os.getcwd()) != 'ImportData':
+        os.chdir(os.path.join(os.getcwd(),'ImportData'))
     animeIDs = pd.DataFrame()
     #movieIDs = pd.read_csv('animeMovies.csv')
     newMoviesIDs = []
@@ -296,7 +299,8 @@ def CheckMissingAnime() -> bool:
         return False
 
 def RecommendationData(percent:float = 1,complete:bool = False):
-    os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\ImportData')
+    if os.path.basename(os.getcwd()) != 'ImportData':
+        os.chdir(os.path.join(os.getcwd(),'ImportData'))
     outfile = open("ErrorFile.txt","w")
     outfile.write("\n\n Beginning the gathering of Recommendation data.\n")
     trainingData = pd.DataFrame({'uid':0,'recommendations':[],'recIDs':[]})
@@ -378,8 +382,8 @@ def RecommendationData(percent:float = 1,complete:bool = False):
 
 #Takes a recommendations file that is missing RecIDs and adds the ID for all the recommendation
 def mergeRecommendation(merge:str):
-    if os.getcwd() != 'C:\\Users\\isaia\\AnimeRecommendation\\ImportData':
-        os.chdir('C:\\Users\\isaia\\AnimeRecommendation\\ImportData')
+    if os.getcwd() != os.path.join(os.getcwd(),'ImportData'):
+        os.chdir(os.path.join(os.getcwd(),'ImportData'))
     df = pd.read_csv("recommendationsOriginal.csv")
     animedf = pd.read_csv("animes.csv")
     if merge.lower() == 'name':
