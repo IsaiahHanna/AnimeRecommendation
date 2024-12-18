@@ -7,6 +7,7 @@ Purpose: Create a webpage for the user to interact with program
 from flask import Flask,render_template,request,jsonify
 from Main import Recommendation
 import requests
+from waitress import serve
 from ImportData.api_Url import URL
 from ExceptionsList import DataImportException
 
@@ -46,5 +47,9 @@ def index():
 def getShows():
     return jsonify(titlesDict)
 
-app.run(host = "0.0.0.0", port = 8080,debug=True) #Tells flask to run on my machine and which port
+serve(
+    app,
+    listen = '*:8080',
+    url_prefix = 'https'
+) #Tells flask to run on my machine and which port
 
