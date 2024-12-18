@@ -165,6 +165,3 @@ cython_debug/
 
 #Jupyter Explorative Notebooks
 *.ipynb
-
-#.DS_Store
-*.DS_Store
